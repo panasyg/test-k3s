@@ -15,7 +15,7 @@ spec:
         app: debug-task-app
     spec:
       securityContext:
-        fsGroup: 1000  # Ensure correct permissions for mounted volumes
+        fsGroup: 1000
       containers:
         - name: nginx
           image: nginxinc/nginx-unprivileged:latest
@@ -47,4 +47,3 @@ spec:
         - name: debug-task-pvc
           persistentVolumeClaim:
             claimName: debug-task-pvc
-
