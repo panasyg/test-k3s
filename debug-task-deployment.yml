@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: debug-task-deployment
+  labels:
+    app: debug-task-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: debug-task-app
+  template:
+    metadata:
+      labels:
+        app: debug-task-app
+    spec:
+      securityContext:
+        fsGroup: 1000  # Ensure correct permissions for mounted volumes
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:latest
+          ports:
+            - containerPort: 8081
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+            - name: debug-task-pvc
+              mountPath: /uploads
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 5
+        - name: app
+          image: alpacked/test-task
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: debug-task-pvc
+              mountPath: /uploads
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+        - name: debug-task-pvc
+          persistentVolumeClaim:
+            claimName: debug-task-pvc
+
